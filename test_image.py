@@ -51,4 +51,4 @@ def test_image(image_path):
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    test_image('apriltags.png')  # Replace with the path to your PNG image
+    test_image('apriltag2.jpg')  
