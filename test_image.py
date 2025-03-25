@@ -20,10 +20,9 @@ def test_image(image_path):
     tags = detector.detector.detect(gray)
 
     for tag in tags:
-        # Get the tag's ID, corners, and family
+        # Get the tag's ID and corners
         tag_id = tag.tag_id
         corners = tag.corners
-        tag_family = tag.family  # Get the tag family
 
         # Calculate the center of the tag
         center = np.mean(corners, axis=0)
@@ -43,13 +42,13 @@ def test_image(image_path):
         cv2.polylines(frame, [np.int32(corners)], isClosed=True, color=(0, 255, 0), thickness=2)
         cv2.circle(frame, (int(center[0]), int(center[1])), 5, (255, 0, 0), -1)
 
-        # Annotate the tag ID and family on the image
-        cv2.putText(frame, f"ID: {tag_id}, Family: {tag_family}", 
+        # Annotate the tag ID on the image
+        cv2.putText(frame, f"ID: {tag_id}", 
                     (int(center[0]), int(center[1]) - 10), 
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
 
         # Print the tag ID, position, and distance
-        print(f"Detected tag ID: {tag_id}, Family: {tag_family}, Position: {center}, Distance: {distance:.2f} meters")
+        print(f"Detected tag ID: {tag_id}, Position: {center}, Distance: {distance:.2f} meters")
 
     # Resize the frame for better visibility
     frame_resized = cv2.resize(frame, (800, 600))  # Resize to 800x600 pixels
