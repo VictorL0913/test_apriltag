@@ -1,10 +1,64 @@
 import apriltag
 import numpy as np
 import cv2
+import sys
+
+def list_cameras():
+    """List available camera devices and their capabilities"""
+    print("Checking available camera devices:")
+    index = 0
+    available_cameras = []
+    
+    # Try the first 10 camera indices
+    while index < 10:
+        cap = cv2.VideoCapture(index)
+        if cap.isOpened():
+            # Get camera information
+            width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+            height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+            print(f"  Camera {index}: {width}x{height}")
+            available_cameras.append(index)
+        cap.release()
+        index += 1
+    
+    return available_cameras
 
 def main():
-    # Initialize the camera
-    cap = cv2.VideoCapture(0)  # Use 0 for default camera
+    # List and check available cameras
+    available_cameras = list_cameras()
+    
+    if not available_cameras:
+        print("Error: No cameras found")
+        return
+        
+    # Ask user to select camera if there are multiple
+    camera_index = 0  # Default to first camera
+    if len(available_cameras) > 1:
+        print("Multiple cameras found. Please select:")
+        for i, cam_idx in enumerate(available_cameras):
+            print(f"  {i}: Camera {cam_idx}")
+        try:
+            selection = int(input("Enter selection (0-{}): ".format(len(available_cameras)-1)))
+            if 0 <= selection < len(available_cameras):
+                camera_index = available_cameras[selection]
+        except ValueError:
+            print(f"Invalid selection, using default camera {camera_index}")
+    
+    print(f"Attempting to open camera {camera_index}")
+    
+    # Initialize the camera with explicit backend for virtual camera support
+    cap = cv2.VideoCapture(camera_index)
+    
+    # Try different backends if default fails
+    if not cap.isOpened():
+        print(f"Failed to open camera with default backend, trying V4L2...")
+        cap = cv2.VideoCapture(camera_index, cv2.CAP_V4L2)
+    
+    if not cap.isOpened():
+        print(f"Error: Could not open camera {camera_index}")
+        return
+    
+    print(f"Successfully opened camera {camera_index}")
     
     # Initialize AprilTag detector
     detector = apriltag.Detector(apriltag.DetectorOptions(
@@ -20,12 +74,19 @@ def main():
         quad_contours=True
     ))
 
+    frame_count = 0
     while True:
         # Read frame from camera
         ret, frame = cap.read()
         if not ret:
-            print("Failed to grab frame")
-            break
+            frame_count += 1
+            print(f"Failed to grab frame (attempt {frame_count})")
+            if frame_count > 5:  # Give up after multiple consecutive failures
+                print("Too many failed attempts, exiting")
+                break
+            continue
+        
+        frame_count = 0  # Reset counter on successful frame grab
 
         # Convert to grayscale
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
