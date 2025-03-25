@@ -42,18 +42,9 @@ def test_image(image_path):
         cv2.polylines(frame, [np.int32(corners)], isClosed=True, color=(0, 255, 0), thickness=2)
         cv2.circle(frame, (int(center[0]), int(center[1])), 5, (255, 0, 0), -1)
 
-        # Annotate the tag ID on the image with a background rectangle
-        text = f"ID: {tag_id}"
-        text_size = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)[0]
-        text_x = int(center[0]) - text_size[0] // 2
-        text_y = int(center[1]) - 10
-
-        # Draw a filled rectangle behind the text
-        cv2.rectangle(frame, (text_x - 2, text_y - text_size[1] - 2), 
-                      (text_x + text_size[0] + 2, text_y + 2), (0, 0, 0), -1)
-
-        # Put the text on the image
-        cv2.putText(frame, text, (text_x, text_y), 
+        # Annotate the tag ID on the image
+        cv2.putText(frame, f"ID: {tag_id}", 
+                    (int(center[0]), int(center[1]) - 10), 
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
 
         # Print the tag ID, position, and distance
